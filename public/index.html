@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f2f2f2;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    #loginForm,
+    #joinForm,
+    #chat {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #joinForm form,
+    #messageForm {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    #messages-container {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    #messages li {
+      list-style: none;
+      margin-bottom: 8px;
+    }
+
+    #typing {
+      margin-top: 10px;
+      color: #888;
+    }
+
+    .notification {
+      color: #777;
+      font-style: italic;
+    }
+
+    #leaveRoom,
+    #logout,
+    #joinRoom,
+    #messageForm button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #leaveRoom,
+    #logout {
+      margin-top: 10px;
+      display: block;
+      width: 100%;
+    }
+
+    #messageForm button {
+      flex-shrink: 0;
+    }
+
+    #m {
+      flex-grow: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    /* Added styles for notifications */
+    .notification-bar {
+      background-color: #4caf50;
+      color: white;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 4px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to the Chat App</h1>
+  <div class="notification-bar" id="notificationBar"></div>
+  <form id="loginForm">
+    <label for="username">Username:</label>
+    <input type="text" id="username" required>
+    <button type="submit">Login</button>
+  </form>
+  <div id="joinForm" style="display: none;">
+    <form>
+      <label for="room">Select Room:</label>
+      <select id="room" required>
+        <option value="devops">DevOps</option>
+        <option value="cloud">Cloud Computing</option>
+        <option value="covid19">COVID-19</option>
+        <option value="sports">Sports</option>
+        <option value="nodejs">Node.js</option>
+      </select>
+      <button type="button" id="joinRoom">Join Room</button>
+    </form>
+  </div>
+  <div id="chat" style="display: none;">
+    <div id="messages-container">
+      <ul id="messages"></ul>
+    </div>
+    <form id="messageForm">
+      <input id="m" autocomplete="off" /><button type="submit">Send</button>
+    </form>
+    <p id="typing"></p>
+    <button id="leaveRoom">Leave Room</button>
+    <button id="logout">Logout</button>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    $(document).ready(function () {
+      let socket = io();
+      let username;
+
+      // Function to show notifications
+      function showNotification(message) {
+        $('#notificationBar').text(message).slideDown().delay(2000).slideUp();
+      }
+
+      $('#loginForm').submit(function (e) {
+        e.preventDefault();
+        username = $('#username').val();
+        socket.emit('join', { username, room: $('#room').val() });
+        $('#loginForm').hide();
+        $('#joinForm').show();
+        $('#chat').show();
+        showNotification(`Welcome, ${username}!`);
+      });
+
+      $('#joinRoom').click(function () {
+        socket.emit('join', { username, room: $('#room').val() });
+      });
+
+      $('#messageForm').submit(function (e) {
+        e.preventDefault();
+        const message = $('#m').val();
+        socket.emit('chat message', { username, room: $('#room').val(), message });
+        $('#m').val('');
+        return false;
+      });
+
+      socket.on('chat message', function (msg) {
+        $('#messages').append($('<li>').text(`${msg.username}: ${msg.message}`));
+        $('#typing').text('');
+      });
+
+      socket.on('user typing', function (data) {
+        $('#typing').text(`${data.username} is typing...`);
+      });
+
+      socket.on('notification', function (msg) {
+        $('#messages').append($('<li class="notification">').text(msg));
+        $('#typing').text('');
+        showNotification(msg);
+      });
+
+      $('#leaveRoom').click(function () {
+        socket.emit('leave', { username, room: $('#room').val() });
+        $('#joinForm').show();
+        $('#chat').hide();
+        showNotification(`Goodbye, ${username}!`);
+      });
+
+      $('#logout').click(function () {
+        $('#loginForm').show();
+        $('#joinForm').hide();
+        $('#chat').hide();
+        showNotification(`Goodbye, ${username}!`);
+      });
+    });
+  </script>
+</body>
+</html>
