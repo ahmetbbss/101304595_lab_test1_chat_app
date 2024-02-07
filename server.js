@@ -50,7 +50,7 @@ io.on('connection', (socket) => {
       const { username, room } = userData;
       console.log(`${username} disconnected from ${room}`);
       delete socketUserData[socket.id];
-      io.to(room).emit('notification', `${username} has left the room.`);
+      io.to(room).emit('notification', `${username} has left the room .`);
     }
   });
 
