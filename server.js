@@ -3,10 +3,13 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
+const cors = require('cors');
+
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+
 
 mongoose.connect('mongodb+srv://ahmetbuyukbas:Yozgatlim38@cluster0.0yemdmh.mongodb.net/chat_app', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
@@ -33,6 +36,8 @@ const Message = mongoose.model('Message', messageSchema);
 
 app.use(express.static('public'));
 app.use(express.json());
+app.use(cors());
+
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
