@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
   socket.on('join', async (data) => {
     try {
       const { username, room } = data;
-      // Remove user from the previous room
+      // Remove user from the previous room //
       const previousUserData = socketUserData[socket.id];
       if (previousUserData) {
         const { previousRoom } = previousUserData;
