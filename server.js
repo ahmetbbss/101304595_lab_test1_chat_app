@@ -62,7 +62,7 @@ io.on('connection', (socket) => {
       if (previousUserData) {
         const { previousRoom } = previousUserData;
         socket.leave(previousRoom);
-        io.to(previousRoom).emit('notification', `${username} has left the room.`);
+        io.to(previousRoom).emit('notification', `${username} has left the room .`);
       }
 
       socket.join(room);
